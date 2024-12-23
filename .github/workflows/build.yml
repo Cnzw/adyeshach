@@ -1,0 +1,32 @@
+# .github/workflows/build.yml
+name: Build
+on:
+  pull_request:
+    types:
+      - closed
+  workflow_dispatch:
+jobs:
+  build:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    - name: Make gradle wrapper executable
+      run: chmod +x ./gradlew
+    - name: Build package
+      uses: gradle/gradle-build-action@v2
+      with:
+        arguments: clean build
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        path: |
+          build/libs/
+          target/
+          plugin/build/libs/
+        if-no-files-found: error
